@@ -1,6 +1,6 @@
 import pandas as pd
 
-def Load_DataFrame_List():
+def loadDataFrameList():
 
     ## Loading in the datasets for all the league seasons
     df2005_2006 = pd.read_csv('Data/Premier-League-Use/Premier_2005-2006.csv' , sep=",", parse_dates=['Date'], dayfirst=True)
