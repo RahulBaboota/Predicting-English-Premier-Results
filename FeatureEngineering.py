@@ -19,42 +19,44 @@ def computeTGD(DataFrame) :
     Teams = list((DataFrame).HomeTeam.unique())
 
     ## Creating a Temporary DataFrame which consists of the records of the matches teamwise .
-    for i in range(0, 20):
+    for z in range(0, 20):
 
         ## Creating a Temporary DataFrame where the team was either "Home" or "Away" .
-        tempDF = DataFrame[ (DataFrame['HomeTeam'] == str(Teams[i]) ) | ( DataFrame['AwayTeam'] == str(Teams[i])) ]
+        tempDF = DataFrame[ (DataFrame['HomeTeam'] == str(Teams[z]) ) | ( DataFrame['AwayTeam'] == str(Teams[z])) ]
 
         ## Creating a list which contains "Matchwise Goal Difference" for the team under observation .
         MGDList = []
 
         for index, row in tempDF.iterrows():
-            if (row['HomeTeam'] == Teams[i]):
+
+            if (Teams[z] == row['HomeTeam']):
                 MGDList.append(row['MHTGD'])
-            else:
+
+            elif (Teams[z] == row['AwayTeam']):
                 MGDList.append(row['MATGD'])
 
         ## Creating a list which contains "Goal Difference" for the team under observation before coming into each match.
         GDList = []
 
-        for j in range(0, 38):
+        for i in range(0, 38):
             
             ## When the team has played no match.
-            if (j == 0):
+            if (i == 0):
                 GDList.append(0)
             
             ## When the team has played exactly one match.
-            elif (j == 1):
-                GDList.append(MGDList[j - 1])
+            elif (i == 1):
+                GDList.append(MGDList[i - 1])
             
             ## When the team has played more than 1 match.
             else:
-                GDList.append(GDList[j - 1] + MGDList[j - 1])
+                GDList.append(GDList[i - 1] + MGDList[i - 1])
 
 
         ## We will now normalise the Goal Difference.
-        for j in range(0, 38):
+        for m in range(0, 38):
 
-            GDList[j] /= 100
+            GDList[m] /= 100
 
         ## Creating a list for the index values of the games contained in tempDF.
         gameIndices = tempDF.index.tolist()
@@ -67,17 +69,17 @@ def computeTGD(DataFrame) :
         for index, row in tempDF.iterrows():
             
             ## If team was Home Team.
-            if (row['HomeTeam'] == Teams[i]):
+            if (Teams[z] == row['HomeTeam']):
                  indexHome.append(index)
                     
             ## If team was Away Team.
-            else:
+            elif (Teams[z] == row['AwayTeam']):
                 indexAway.append(index)
 
         ## Appending the appropriate "Goal Difference" values to the dataframe .
-        for k in range(0, 38):
+        for j in range(0, 38):
 
-            if (gameIndices[k] in indexHome):
-                DataFrame['HTGD'][gameIndices[k]] = GDList[k]
-            elif (gameIndices[k] in indexAway):
-                DataFrame['ATGD'][gameIndices[k]] = GDList[k]
+            if (gameIndices[j] in indexHome):
+                DataFrame['HTGD'][gameIndices[j]] = GDList[j]
+            elif (gameIndices[j] in indexAway):
+                DataFrame['ATGD'][gameIndices[j]] = GDList[j]
