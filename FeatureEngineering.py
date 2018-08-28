@@ -84,6 +84,9 @@ def computeTGD(DataFrame) :
             elif (gameIndices[j] in indexAway):
                 DataFrame['ATGD'][gameIndices[j]] = GDList[j]
 
+    ## Filling in the coloumns for "GD".
+    DataFrame['GD'] = DataFrame.apply(lambda row: row['HTGD'] - row['ATGD'], axis = 1)
+
 
 ''''-----------------------------------     Adding KPP as a Feature  --------------------------------------------'''
 
@@ -186,3 +189,115 @@ def computeKPP(DataFrame, slidingWindowParameter):
     DataFrame['GKPP'] = DataFrame.apply(lambda row: row['HGKPP'] - row['AGKPP'], axis = 1)
     DataFrame['CKPP'] = DataFrame.apply(lambda row: row['HCKPP'] - row['ACKPP'], axis = 1)
     DataFrame['STKPP'] = DataFrame.apply(lambda row: row['HSTKPP'] - row['ASTKPP'], axis = 1)
+
+
+''''-----------------------------------     Adding Streak and Weighted Streak as a Feature  --------------------------------------------'''
+
+## Creating a function which computes the Streak and Weighted Streak.
+
+def computeStreak(Dataframe, slidingWindowParameter):
+    
+    ## Set slidingWindowParameter to k.
+    k = slidingWindowParameter
+
+    ## Creating a list of all the teams that played in that season.
+    Teams = list((DataFrame).HomeTeam.unique())
+    
+    ## Initialsing the values in the coloumns "HSt, ASt , HStWeigted , AStWeigted".
+    DataFrame['HSt'] = np.nan
+    DataFrame['ASt'] = np.nan
+    DataFrame['HStWeighted'] = np.nan
+    DataFrame['AStWeighted'] = np.nan
+    
+    ## Creating a Temporary DataFrame which consists of the records of the matches teamwise.
+    for z in range(0, 20):
+
+        ## Creating a Temporary DataFrame where the team was either "Home" or "Away" .
+        tempDF = DataFrame[(DataFrame['HomeTeam'] == str(Teams[z])) | ( DataFrame['AwayTeam'] == str(Teams[z]))]
+    
+        ## Creating a list which contains the points assigned to each team after their match. 
+        ## 0 - Loss
+        ## 1 - Draw
+        ## 3 - Win
+        matchPoints = []
+
+        ## Creating a list which contains the weights assigned to each match according to the sliding window hyper-parameter.
+        ## The weighting scheme is such that the first match in the window will be a assigned a weight of 1 and the last match will be 
+        ## assigned a weight of k.
+        weightList = [(i + 1) for i in range(0, k)]
+        
+        for index , row in tempDF.iterrows():
+            
+            if (Teams[z] == row['HomeTeam']):
+                if (row['FTR'] == 'A') :
+                    matchPoints.append(0.0)
+                elif (row['FTR'] == 'D') :
+                    matchPoints.append(1.0)
+                elif (row['FTR'] == 'H') :
+                    matchPoints.append(3.0)
+
+            elif (Teams[z] == row['AwayTeam']):
+                if (row['FTR'] == 'H') :
+                    matchPoints.append(0.0)
+                elif (row['FTR'] == 'D') :
+                    matchPoints.append(1.0)
+                elif (row['FTR'] == 'A') :
+                    matchPoints.append(3.0)
+        
+        ## Creating lists to hold values for the corresponding Streak and Weighted Streak Features.
+        ## Since these features will be non existent for the first k matches of each team, fill Nan for the first k values.
+        streak = [np.nan] * k
+        weightedStreak = [np.nan] * k
+        
+        ## Adding appropriate values to the list.
+        ## The number of computations performed will be (n + 1 - k) where :
+        ## n = number of matches in the season for each team (38).
+        ## k = sliding window hyper-parameter.
+        for i in range(0, (39 - k)):
+
+            ## Obtaining the slice of records to be observed.
+            matchPointsSlice = matchPoints[i : (i + k)]
+
+            ## Sum the slice of records and normalize it by 3k.
+            streakValue = sum(matchPointsSlice)/(3 * k)
+
+            ## Multiply the slice by the weights.
+            ## Sum the slice of records and normalize it by (3k(k+1))/2.
+            weightedStreakValue = sum(list(np.array(matchPointsSlice) * np.array(weightList)))/((1.5) * k * (k + 1))
+
+            ## Appending to the list of the corresponding features.
+            streak.append(streakValue)
+            weightedStreak.append(weightedStreakValue)
+            
+        ## Creating a list for the index values of the games contained in the tempDF.
+        gameIndices = tempDF.index.tolist()
+
+        ## Creating two lists which contains the index number of those games wherein the team under observation was Home or Away.
+        indexHome = []
+        indexAway = []
+
+        ## Segregate home and away match indices.
+        for index, row in tempDF.iterrows():
+
+            if (Teams[z] == row['HomeTeam']):
+                 indexHome.append(index)
+
+            elif (Teams[z] == row['AwayTeam']):
+                indexAway.append(index)
+
+        ## Appending the appropriate "KPP" values to the dataframe.
+        for j in range(0, 38):
+
+            if (gameIndices[j] in indexHome):
+                DataFrame['HSt'][gameIndices[j]] = streak[j]
+                DataFrame['HStWeighted'][gameIndices[j]] = weightedStreak[j]
+
+            elif (gameIndices[j] in indexAway):
+                DataFrame['ASt'][gameIndices[j]] = streak[j]
+                DataFrame['AStWeighted'][gameIndices[j]] = weightedStreak[j]
+                
+        print 'Computing Streak and Weighted Streak ', Teams[z] , z 
+    
+    ## Filling in the coloumns for "Streak and WeightedStreak".
+    DataFrame['Streak'] = DataFrame.apply(lambda row: row['HSt'] - row['ASt'], axis = 1)
+    DataFrame['WeightedStreak'] = DataFrame.apply(lambda row: row['HStWeighted'] - row['AStWeighted'], axis = 1)
