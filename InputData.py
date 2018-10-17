@@ -20,4 +20,12 @@ def loadDataFrameList():
     ## Defining a list of dataframes for them to be concatenated together .
     DataFrames=[df2005_2006,df2006_2007,df2007_2008,df2008_2009,df2009_2010,df2010_2011,df2011_2012,df2012_2013,df2013_2014,df2014_2015,df2015_2016,df2016_2017,df2017_2018]
 
+    ## Defining a list which contains the season names to be added as a coloumn to the dataframe season wise
+    SeasonNames = ["2005-2006","2006-2007","2007-2008","2008-2009","2009-2010","2010-2011","2011-2012","2012-2013","2013-2014","2014-2015","2015-2016","2016-2017","2017-2018"]
+
+    ## Looping over the above two lists to add a "Season" coloumn seasonwise to each dataframe .
+    for i in range(0,len(DataFrames)):
+        DataFrames[i]["Season"] = SeasonNames[i]
+        i = i + 1
+
     return DataFrames
