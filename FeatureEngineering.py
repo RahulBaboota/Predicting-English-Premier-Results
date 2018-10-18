@@ -1,9 +1,13 @@
 ## Importing necessary libraries and modules.
+import warnings
 import numpy as np
+import pandas as pd 
 from collections import OrderedDict
 from InputData import loadDataFrameList
 
-## Loading the list of dataframes from DataPreprocessing
+warnings.filterwarnings('ignore')
+
+## Loading the list of dataframes from DataPreprocessing.
 DataFrames = loadDataFrameList()
 
 '''-----------------------------------     Adding Goal Difference as a Feature  --------------------------------------------'''
@@ -183,7 +187,6 @@ def computeKPP(DataFrame, slidingWindowParameter):
                 DataFrame['ACKPP'][gameIndices[j]] = cornersKPP[j]
                 DataFrame['ASTKPP'][gameIndices[j]] = shotsOnTargetKPP[j]
         
-        print 'Computing KPP ', Teams[z] , z 
     
     ## Filling in the coloumns for "GKPP, CKPP, STKPP".
     DataFrame['GKPP'] = DataFrame.apply(lambda row: row['HGKPP'] - row['AGKPP'], axis = 1)
@@ -195,7 +198,7 @@ def computeKPP(DataFrame, slidingWindowParameter):
 
 ## Creating a function which computes the Streak and Weighted Streak.
 
-def computeStreak(Dataframe, slidingWindowParameter):
+def computeStreak(DataFrame, slidingWindowParameter):
     
     ## Set slidingWindowParameter to k.
     k = slidingWindowParameter
@@ -296,7 +299,6 @@ def computeStreak(Dataframe, slidingWindowParameter):
                 DataFrame['ASt'][gameIndices[j]] = streak[j]
                 DataFrame['AStWeighted'][gameIndices[j]] = weightedStreak[j]
                 
-        print 'Computing Streak and Weighted Streak ', Teams[z] , z 
     
     ## Filling in the coloumns for "Streak and WeightedStreak".
     DataFrame['Streak'] = DataFrame.apply(lambda row: row['HSt'] - row['ASt'], axis = 1)
@@ -356,11 +358,11 @@ def computeForm(DataFrame, stealingFraction):
         ## Case where home team wins. Since the home team wins here, a positive update is given to the home team and a negative update is given to the away team.        
         if (row['FTR'] == 'H'):
 
-            ## Print form values of the teams before coming into the match.
+            ## Form values of the teams before coming into the match.
             prevHomeForm = gFormDict[row['HomeTeam']]
             prevAwayForm = gFormDict[row['AwayTeam']]
 
-            ## Print next match index of the Home and Away Team.
+            ## Next match index of the Home and Away Team.
             nextMatchH = teamMatchLookup[row['HomeTeam']][matchCounterDict[row['HomeTeam']]]
             nextMatchA = teamMatchLookup[row['AwayTeam']][matchCounterDict[row['AwayTeam']]]
     
@@ -398,11 +400,11 @@ def computeForm(DataFrame, stealingFraction):
         ## Case where away team wins. Since the away team wins here, a positive update is given to the away team and a negative update is given to the home team.        
         if (row['FTR'] == 'A'):
 
-            # Print form values of the teams before coming into the match.
+            ## Form values of the teams before coming into the match.
             prevHomeForm = gFormDict[row['HomeTeam']]
             prevAwayForm = gFormDict[row['AwayTeam']]
         
-            ## Print next match index of the Home and Away Team.
+            ## Next match index of the Home and Away Team.
             nextMatchH = teamMatchLookup[row['HomeTeam']][matchCounterDict[row['HomeTeam']]]
             nextMatchA = teamMatchLookup[row['AwayTeam']][matchCounterDict[row['AwayTeam']]]
 
@@ -439,11 +441,11 @@ def computeForm(DataFrame, stealingFraction):
         ## Case where a draw occurs.
         if (row['FTR'] == 'D'):
 
-            # Print form values of the teams before coming into the match.
+            # Form values of the teams before coming into the match.
             prevHomeForm = gFormDict[row['HomeTeam']]
             prevAwayForm = gFormDict[row['AwayTeam']]
     
-            ## Print next match index of the Home and Away Team.
+            ## Next match index of the Home and Away Team.
             nextMatchH = teamMatchLookup[row['HomeTeam']][matchCounterDict[row['HomeTeam']]]
             nextMatchA = teamMatchLookup[row['AwayTeam']][matchCounterDict[row['AwayTeam']]]
 
@@ -479,3 +481,30 @@ def computeForm(DataFrame, stealingFraction):
     
     # Filling in the coloumns for "Form".
     DataFrame['Form'] = DataFrame.apply(lambda row: row['HForm'] - row['AForm'], axis = 1)
+
+
+## Computing features for all the data.
+for i, dataFrame in enumerate(DataFrames):
+
+    ## List of features who's initial values are Nan.
+    nanFeatures = ['GKPP', 'HGKPP', 'AGKPP', 'CKPP', 'HCKPP', 'ACKPP', 'STKPP', 'HSTKPP', 'ASTKPP', 'Streak', 'HSt', 'ASt', 'WeightedStreak', 'HStWeighted', 'AStWeighted']
+    
+    dataFrame['MHTGD'] = dataFrame.apply(lambda row: row['FTHG'] - row['FTAG'], axis = 1)
+    dataFrame['MATGD'] = dataFrame.apply(lambda row: row['FTAG'] - row['FTHG'], axis = 1)
+    
+    ## Computing the features.
+    computeTGD(dataFrame)
+    computeKPP(dataFrame, 6)
+    computeStreak(dataFrame, 6)
+    computeForm(dataFrame, 0.33)
+    
+    ## Dropping all rows containing Nan values for the above feature list.
+    dataFrame = dataFrame.dropna(subset = nanFeatures)
+    
+    print(i)
+
+## Concatening all the dataframes together.
+DataFrame = pd.concat(DataFrames)
+
+## Saving the newly engineered dataset.
+DataFrame.to_csv('./EngineeredData.csv', sep = ',', index = False)
