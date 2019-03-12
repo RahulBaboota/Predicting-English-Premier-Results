@@ -10,6 +10,94 @@ warnings.filterwarnings('ignore')
 ## Loading the list of dataframes from DataPreprocessing.
 DataFrames = loadDataFrameList()
 
+'''-----------------------------------     Adding Fifa Ratings  --------------------------------------------'''
+
+## Creating a function that adds the scraped fifa ratings to the dataframe.
+def addFifaRatings(DataFrame):
+
+    ## Reading in the fifa ratings file.
+    fifaRatings = pd.read_csv('./Log.csv', sep = ',')
+
+    ## Singling out the season currently under observation.
+    currSeason = DataFrame.Season.unique()[0]
+
+    ## Isolating the respective season fifa ratings.
+    fifaRatingsIsolated = fifaRatings[ fifaRatings['Season'] == currSeason]
+
+    ## Initialsing the values in the coloumns for the Fifa Team Rankings .
+    DataFrame['AOverall'] = np.nan
+    DataFrame['HOverall'] = np.nan
+    DataFrame['AAttack'] = np.nan
+    DataFrame['HAttack'] = np.nan
+    DataFrame['AMidfield'] = np.nan
+    DataFrame['HMidfield'] = np.nan
+    DataFrame['ADefense'] = np.nan
+    DataFrame['HDefense'] = np.nan
+
+    ## Creating a list of all the teams that played in that season (Non-Standard).
+    TeamsNS = list((DataFrame).HomeTeam.unique())
+    TeamsNS = sorted(TeamsNS, key = str.lower)
+
+    ## Creating a list of all the teams that played in that season (Standard).
+    TeamsS = list((fifaRatingsIsolated).Name.unique())
+    TeamsS = sorted(TeamsS, key = str.lower)
+
+    ## Replacing the non-standard names by the standard names in the dataframe.
+    DataFrame = DataFrame.replace(TeamsNS, TeamsS)
+
+    ## Creating a Temporary DataFrame which consists of the records of the matches teamwise .
+    for z in range(0, 20):
+        
+        ## Creating a Temporary DataFrame where the team was either "Home" or "Away" .
+        tempDF = DataFrame[ (DataFrame['HomeTeam'] == str(TeamsS[z]) ) | ( DataFrame['AwayTeam'] == str(TeamsS[z])) ]
+        
+        ## Parsing the attributes for the particular team under observation.
+        infoRow = fifaRatingsIsolated[fifaRatingsIsolated['Name'] == TeamsS[z]]
+        Overall = infoRow['Overall'] 
+        Defense = infoRow['Defense']
+        MidField = infoRow['Midfield']
+        Attack = infoRow['Attack']
+        
+         ## Creating a list for the index values of the games contained in the tempDF.
+        gameIndices = tempDF.index.tolist()
+
+        ## Creating two lists which contains the index number of those games wherein the team under observation was Home or Away.
+        indexHome = []
+        indexAway = []
+
+        ## Segregate home and away match indices.
+        for index, row in tempDF.iterrows():
+
+            if (TeamsS[z] == row['HomeTeam']):
+                 indexHome.append(index)
+
+            elif (TeamsS[z] == row['AwayTeam']):
+                indexAway.append(index)
+
+        ## Appending the appropriate "KPP" values to the dataframe.
+        for j in range(0, 38):
+
+            if (gameIndices[j] in indexHome):
+                DataFrame['HOverall'][gameIndices[j]] = Overall
+                DataFrame['HAttack'][gameIndices[j]] = Attack
+                DataFrame['HMidfield'][gameIndices[j]] = MidField
+                DataFrame['HDefense'][gameIndices[j]] = Defense
+
+            elif (gameIndices[j] in indexAway):
+                DataFrame['AOverall'][gameIndices[j]] = Overall
+                DataFrame['AAttack'][gameIndices[j]] = Attack
+                DataFrame['AMidfield'][gameIndices[j]] = MidField
+                DataFrame['ADefense'][gameIndices[j]] = Defense
+
+    ## Filling in the coloumns for "Overall, Attack, Midfield and Defense".
+    DataFrame['Overall'] = DataFrame.apply(lambda row: row['HOverall'] - row['AOverall'], axis = 1)
+    DataFrame['Attack'] = DataFrame.apply(lambda row: row['HAttack'] - row['AAttack'], axis = 1)
+    DataFrame['Midfield'] = DataFrame.apply(lambda row: row['HMidfield'] - row['AMidfield'], axis = 1)
+    DataFrame['Defense'] = DataFrame.apply(lambda row: row['HDefense'] - row['ADefense'], axis = 1)
+
+    return DataFrame
+
+
 '''-----------------------------------     Adding Goal Difference as a Feature  --------------------------------------------'''
 
 ## Creating a function that computes the columns "HTGD" ( Home Team Goal Difference ) and "ATGD" ( Away Team Goal Difference ) .
@@ -498,13 +586,20 @@ for i, dataFrame in enumerate(DataFrames):
     computeStreak(dataFrame, 6)
     computeForm(dataFrame, 0.33)
     
-    ## Dropping all rows containing Nan values for the above feature list.
+    # Dropping all rows containing Nan values for the above feature list.
     dataFrame = dataFrame.dropna(subset = nanFeatures)
     
     print(i)
 
+## Adding the fifa Ratings to all the dataframes.
+dataFrameList = []
+
+for dataFrame in DataFrames:
+    frameFifaRatings = addFifaRatings(dataFrame)
+    dataFrameList.append(frameFifaRatings)
+
 ## Concatening all the dataframes together.
-DataFrame = pd.concat(DataFrames)
+DataFrame = pd.concat(dataFrameList)
 
 ## Saving the newly engineered dataset.
 DataFrame.to_csv('./EngineeredData.csv', sep = ',', index = False)
