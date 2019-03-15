@@ -1,4 +1,4 @@
-## Importing necessary libraries and modules.
+Importing necessary libraries and modules.
 import warnings
 import numpy as np
 import pandas as pd 
@@ -573,9 +573,6 @@ def computeForm(DataFrame, stealingFraction):
 
 ## Computing features for all the data.
 for i, dataFrame in enumerate(DataFrames):
-
-    ## List of features who's initial values are Nan.
-    nanFeatures = ['GKPP', 'HGKPP', 'AGKPP', 'CKPP', 'HCKPP', 'ACKPP', 'STKPP', 'HSTKPP', 'ASTKPP', 'Streak', 'HSt', 'ASt', 'WeightedStreak', 'HStWeighted', 'AStWeighted']
     
     dataFrame['MHTGD'] = dataFrame.apply(lambda row: row['FTHG'] - row['FTAG'], axis = 1)
     dataFrame['MATGD'] = dataFrame.apply(lambda row: row['FTAG'] - row['FTHG'], axis = 1)
@@ -585,10 +582,7 @@ for i, dataFrame in enumerate(DataFrames):
     computeKPP(dataFrame, 6)
     computeStreak(dataFrame, 6)
     computeForm(dataFrame, 0.33)
-    
-    # Dropping all rows containing Nan values for the above feature list.
-    dataFrame = dataFrame.dropna(subset = nanFeatures)
-    
+
     print(i)
 
 ## Adding the fifa Ratings to all the dataframes.
