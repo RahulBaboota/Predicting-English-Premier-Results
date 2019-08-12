@@ -12,16 +12,14 @@ The introduction of artificial intelligence has given us the ability to build pr
 ## Instructions to Run
 
 **1. Clone the repository**
-
-      ```sh
+      
       $ git clone https://github.com/RahulBaboota/Predicting-English-Premier-Results.git
       $ cd Predicting-English-Premier-Results
-      ```
+      
 **2. Create new virtual environment**
 
-      ```sh
       $ sudo pip install virtualenv
       $ virtualenv venv
       $ source venv/bin/activate
       $ pip install -r requirements.txt
-       ```
+
