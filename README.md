@@ -22,4 +22,18 @@ The introduction of artificial intelligence has given us the ability to build pr
       $ virtualenv venv
       $ source venv/bin/activate
       $ pip install -r requirements.txt
+      
+**3. Repository Information**
 
+<ul>
+      <li> The folder <b>Data</b> contains the raw data collected from <a href = 'https://www.bbc.com/sport/football'> Football UK </a>. </li>
+      <br>
+      <li> The folder </b>GridSearch</b> contains the pickled grid search objects for the machine learning models. </li>
+      <br>
+      <li> The file </b>Scraper.py</b> contains the code for scraping the FIFA Ratings for the teams. (The scraper might be redundant now if the website layout has changed since). </li>
+      <br>
+      <li> The file <b>FeatureEngineering.py</b> contains the code for creating the features from the raw data. </li>
+      <br>
+      <li> The file <b>TrainTestSplit.py</b> contains the code for splitting up the data into a training and testing split as well as creating the subsets <i>A</i> and <i>B</i> as mentioned in the paper. </li>
+      <br>
+       <li> The jupyter notebooks are for the different models on both subsets <i>A</i> as well as <i>B</i>.
