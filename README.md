@@ -28,9 +28,9 @@ The introduction of artificial intelligence has given us the ability to build pr
 <ul>
       <li> The folder <b>Data</b> contains the raw data collected from <a href = 'https://www.bbc.com/sport/football'> Football UK </a>. </li>
       <br>
-      <li> The folder </b>GridSearch</b> contains the pickled grid search objects for the machine learning models. </li>
+      <li> The folder <b>GridSearch</b> contains the pickled grid search objects for the machine learning models. </li>
       <br>
-      <li> The file </b>Scraper.py</b> contains the code for scraping the FIFA Ratings for the teams. (The scraper might be redundant now if the website layout has changed since). </li>
+      <li> The folder <b>Scraper.py</b> contains the code for scraping the FIFA Ratings for the teams. (The scraper might be redundant now if the website layout has changed since). as well as the scraped data.</li>
       <br>
       <li> The file <b>FeatureEngineering.py</b> contains the code for creating the features from the raw data. </li>
       <br>
