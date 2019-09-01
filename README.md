@@ -37,3 +37,8 @@ The introduction of artificial intelligence has given us the ability to build pr
       <li> The file <b>TrainTestSplit.py</b> contains the code for splitting up the data into a training and testing split as well as creating the subsets <i>A</i> and <i>B</i> as mentioned in the paper. </li>
       <br>
        <li> The jupyter notebooks are for the different models on both subsets <i>A</i> as well as <i>B</i>.
+             
+## Results
+
+<img src="https://github.com/RahulBaboota/Predicting-English-Premier-Results/blob/master/Images/AllModelsBar.jpeg">
+<img src="https://github.com/RahulBaboota/Predicting-English-Premier-Results/blob/master/Images/RPS.jpeg">
